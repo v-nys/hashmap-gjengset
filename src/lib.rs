@@ -1,6 +1,6 @@
 use std::{
     collections::hash_map::{DefaultHasher, RandomState},
-    hash::BuildHasher,
+    hash::{Hash, Hasher}
 };
 
 const INITIAL_NBUCKETS: usize = 1; // for easier testing
@@ -20,7 +20,9 @@ impl<K, V> HashMap<K, V> {
             buckets: vec![], // start empty to avoid allocating when it is not necessary
         }
     }
+}
 
+impl<K, V> HashMap<K, V> where K: Hash {
     fn resize(&mut self) {
         let target_size = match self.buckets.len() {
             0 => INITIAL_NBUCKETS,
@@ -30,6 +32,12 @@ impl<K, V> HashMap<K, V> {
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
-        key.hash() % self.buckets.len()
+        let mut hasher = DefaultHasher::new();
+        key.hash(&mut hasher);
+        // expect never to have so many buckets u64 is insufficient
+        // as usize means there is a limit imposed by architecture...
+        let bucket: usize = (hasher.finish() % (self.buckets.len() as u64)) as usize;
+        let bucket = &mut self.buckets[bucket];
+        bucket.items.push((key, value)); // conceptually, but would mean collisions are possible
     }
 }
