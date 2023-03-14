@@ -1,4 +1,7 @@
-use std::{collections::hash_map::{RandomState, DefaultHasher}, hash::BuildHasher};
+use std::{
+    collections::hash_map::{DefaultHasher, RandomState},
+    hash::BuildHasher,
+};
 
 const INITIAL_NBUCKETS: usize = 1; // for easier testing
 
@@ -9,17 +12,15 @@ struct Bucket<K, V> {
 // S is a a way to build a hasher
 pub struct HashMap<K, V> {
     buckets: Vec<Bucket<K, V>>,
-    hasher: DefaultHasher,
 }
 
 impl<K, V> HashMap<K, V> {
     pub fn new() -> Self {
         HashMap {
             buckets: vec![], // start empty to avoid allocating when it is not necessary
-            hasher: DefaultHasher::new(),
         }
     }
-    
+
     fn resize(&mut self) {
         let target_size = match self.buckets.len() {
             0 => INITIAL_NBUCKETS,
