@@ -64,16 +64,10 @@ where
     }
 
     pub fn remove(&mut self, key: &K) -> Option<V> {
-        // main difference will be in the `find`
-        // want to find and remove...
         let bucket = self.bucket(&key);
-        // iter produces references, so won't be enough to remove from the bucket...
-        // into_iter removes ownership, also not what we want, I think
-        // there is a drain_filter method!
-        // but it's quite new, so probably not what Jon uses
-        let matches = self.buckets[bucket].drain_filter(|(k, _)| k == key);
-        // want to return the first value in matches, if any
-        matches.into_iter().map(|(_, v)| v).next()
+        let bucket = &mut self.buckets[bucket];
+        let index_of_removed = bucket.iter().position(|(k,_)| k == key)?;
+        Some(bucket.swap_remove(index_of_removed).1)
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
@@ -106,5 +100,7 @@ mod tests {
         let mut map = HashMap::new();
         map.insert("foo", 42);
         assert_eq!(map.get(&"foo"), Some(&42));
+        assert_eq!(map.remove(&"foo"), Some(42));
+        assert_eq!(map.get(&"foo"), None);
     }
 }
