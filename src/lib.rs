@@ -89,5 +89,6 @@ mod tests {
     fn insert() {
         let mut map = HashMap::new();
         map.insert("foo", 42);
+        assert_eq!(map.get(&"foo"), Some(&42));
     }
 }
