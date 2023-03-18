@@ -63,6 +63,15 @@ where
          * I prefer the style above, though. */
     }
 
+    pub fn len(&self) -> usize {
+        self.items
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.items == 0
+    }
+
+
     pub fn remove(&mut self, key: &K) -> Option<V> {
         let bucket = self.bucket(&key);
         let bucket = &mut self.buckets[bucket];
@@ -100,9 +109,12 @@ mod tests {
     #[test]
     fn insert() {
         let mut map = HashMap::new();
+        assert_eq!(map.len(), 0);
         map.insert("foo", 42);
+        assert_eq!(map.len(), 1);
         assert_eq!(map.get(&"foo"), Some(&42));
         assert_eq!(map.remove(&"foo"), Some(42));
+        assert_eq!(map.len(), 0);
         assert_eq!(map.get(&"foo"), None);
     }
 }
