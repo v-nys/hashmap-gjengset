@@ -10,12 +10,14 @@ pub struct HashMap<K, V> {
     // I guess you can have multiple values in the same bucket
     // misunderstood the video as saying that wouldn't be the case, but then we'd be using Option rather than Vec
     buckets: Vec<Vec<(K, V)>>,
+    items: usize,
 }
 
 impl<K, V> HashMap<K, V> {
     pub fn new() -> Self {
         HashMap {
             buckets: vec![], // start empty to avoid allocating when it is not necessary
+            items: 0,
         }
     }
 }
@@ -31,6 +33,9 @@ impl<K, V> HashMap<K, V> where K: Hash + Eq {
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
+        if self.buckets.is_empty() || self.items > 3 * self.buckets.len() / 4 {
+            self.resize();
+        }
         let mut hasher = DefaultHasher::new();
         key.hash(&mut hasher);
         // expect never to have so many buckets u64 is insufficient
