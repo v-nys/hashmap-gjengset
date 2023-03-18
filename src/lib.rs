@@ -1,5 +1,5 @@
 use std::{
-    collections::{hash_map::DefaultHasher},
+    collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
     mem,
 };
@@ -23,24 +23,33 @@ impl<K, V> HashMap<K, V> {
     }
 }
 
-pub struct Iter<'a,K,V> {}
+/* Having some trouble with lifetimes here.
+ * fact that Hashmap items are references implies that lifetimes are important here.
+ *
+ */
+pub struct Iter<K, V> {
+    elem_iterator: dyn Iterator<Item = &'a (K, V)>,
+}
 
-impl<'a,K,V> Iter<'a,K,V> {
-    fn new(map: &'a HashMap<K,V>) -> Self {
-        
+impl<'a, K, V> Iter<K, V> {
+    fn new(map: &'a HashMap<K, V>) -> Self {
+        let x = map.buckets.iter().flat_map(|b| b.iter());
     }
 }
 
-impl<K, V> Iterator<K,V> for Iter<K, V> {
-    type Item = &(K,V);
+impl<K, V> Iterator for Iter<K, V> {
+    type Item = (K, V);
+
     fn next(&mut self) -> Option<Self::Item> {
-
+        self.elem_iterator.next()
     }
 }
 
-impl<K,V> IntoIterator for &HashMap<K,V> {
-    type Item = &(K,V);
-    type IntoIter = Iter<K,V>;
+impl<'a, K, V> IntoIterator for &'a HashMap<K, V> {
+    // makes sense that an item cannot outlive the hashmap
+    // TODO: can I also do &'a (K,V) ? not sure...
+    type Item = (&'a K, &'a V);
+    type IntoIter = Iter<&'a K, &'a V>;
 
     fn into_iter(self) -> Self::IntoIter {
         Iter::new(self)
