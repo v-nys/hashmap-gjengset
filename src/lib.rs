@@ -1,5 +1,5 @@
 use std::{
-    collections::hash_map::{DefaultHasher, RandomState},
+    collections::{hash_map::{DefaultHasher, RandomState}, binary_heap::Iter},
     hash::{Hash, Hasher},
     mem,
 };
@@ -20,6 +20,30 @@ impl<K, V> HashMap<K, V> {
             buckets: vec![], // start empty to avoid allocating when it is not necessary
             items: 0,
         }
+    }
+}
+
+pub struct Iter<K,V> {}
+
+impl<K,V> Iter<K,V> {
+    fn new(&HashMap<K,V>) -> Self {
+        
+    }
+}
+
+impl<K, V> Iterator<K,V> for Iter<K, V> {
+    type Item = &(K,V);
+    fn next(&mut self) -> Option<Self::Item> {
+
+    }
+}
+
+impl<K,V> IntoIterator for &HashMap<K,V> {
+    type Item = &(K,V);
+    type IntoIter = Iter<K,V>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Iter::new(self);
     }
 }
 
@@ -71,11 +95,14 @@ where
         self.items == 0
     }
 
+    pub fn contains_key(&self, key: &K) -> bool {
+        self.get(key).is_some()
+    }
 
     pub fn remove(&mut self, key: &K) -> Option<V> {
         let bucket = self.bucket(&key);
         let bucket = &mut self.buckets[bucket];
-        let index_of_removed = bucket.iter().position(|(k,_)| k == key)?;
+        let index_of_removed = bucket.iter().position(|(k, _)| k == key)?;
         self.items -= 1;
         Some(bucket.swap_remove(index_of_removed).1)
     }
