@@ -58,9 +58,22 @@ where
             .iter()
             .find(|(k, _)| k == key) // &(...) in param position basically dereferences, because it matches on the structure
             .map(|(_, v)| v)
-            /* I wonder if Jon's way of writing this is due to muscle memory,
-             * because he knows a reference is produced and he matches on it immediately...
-             * I prefer the style above, though. */
+        /* I wonder if Jon's way of writing this is due to muscle memory,
+         * because he knows a reference is produced and he matches on it immediately...
+         * I prefer the style above, though. */
+    }
+
+    pub fn remove(&mut self, key: &K) -> Option<V> {
+        // main difference will be in the `find`
+        // want to find and remove...
+        let bucket = self.bucket(&key);
+        // iter produces references, so won't be enough to remove from the bucket...
+        // into_iter removes ownership, also not what we want, I think
+        // there is a drain_filter method!
+        // but it's quite new, so probably not what Jon uses
+        let matches = self.buckets[bucket].drain_filter(|(k, _)| k == key);
+        // want to return the first value in matches, if any
+        matches.into_iter().map(|(_, v)| v).next()
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
