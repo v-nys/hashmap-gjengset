@@ -56,8 +56,11 @@ where
         let bucket = self.bucket(&key);
         self.buckets[bucket]
             .iter()
-            .find(|(k, _)| k == key)
+            .find(|(k, _)| k == key) // &(...) in param position basically dereferences, because it matches on the structure
             .map(|(_, v)| v)
+            /* I wonder if Jon's way of writing this is due to muscle memory,
+             * because he knows a reference is produced and he matches on it immediately...
+             * I prefer the style above, though. */
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
