@@ -1,6 +1,7 @@
 use std::{
     collections::hash_map::{DefaultHasher, RandomState},
-    hash::{Hash, Hasher}
+    hash::{Hash, Hasher},
+    mem
 };
 
 const INITIAL_NBUCKETS: usize = 1; // for easier testing
@@ -29,7 +30,18 @@ impl<K, V> HashMap<K, V> where K: Hash + Eq {
             0 => INITIAL_NBUCKETS,
             n => 2 * n,
         };
-        // TODO
+        // this presents a Clone issue, probably because vec! wants to clone the element (could perhaps use repeat?)
+        let mut new_buckets: Vec<Vec<(K,V)>> = vec![Vec::new(); target_size];
+        // I think this needs a nested for-loop rather than a flat one
+        // we want to drain every element *from every bucket*
+        for (key, value) in self.buckets.drain(..) {
+            let mut hasher = DefaultHasher::new();
+            key.hash(&mut hasher);
+            let bucket: usize = (hasher.finish() % (new_buckets.len() as u64)) as usize;
+            new_buckets[bucket].push((key, value));
+        }
+        // in-place replace
+        mem::replace(&mut self.buckets, new_buckets);
     }
 
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
@@ -44,7 +56,7 @@ impl<K, V> HashMap<K, V> where K: Hash + Eq {
         let bucket = &mut self.buckets[bucket];
         for (existing_key, existing_value) in bucket.iter_mut() {
             if *existing_key == key {
-                use std::mem;
+                
                 // mem::replace requires a &mut T and a T
                 // if value is of type V, existing_value needs to be of type &mut V
                 return Some(mem::replace(existing_value, value));
