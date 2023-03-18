@@ -1,7 +1,7 @@
 use std::{
     collections::hash_map::{DefaultHasher, RandomState},
     hash::{Hash, Hasher},
-    mem
+    mem,
 };
 
 const INITIAL_NBUCKETS: usize = 1; // for easier testing
@@ -23,19 +23,20 @@ impl<K, V> HashMap<K, V> {
     }
 }
 
-impl<K, V> HashMap<K, V> where K: Hash + Eq {
+impl<K, V> HashMap<K, V>
+where
+    K: Hash + Eq,
+{
     fn resize(&mut self) {
-
         let target_size = match self.buckets.len() {
             0 => INITIAL_NBUCKETS,
             n => 2 * n,
         };
-        // this presents a Clone issue, probably because vec! wants to clone the element (could perhaps use repeat?)
-        // ah, wait: an empty Vec could be cloned, but the type system just designates it as a Vec<(K,V)>, i.e. does not know that it is empty and therefore does not rely on K,V being Clone
-        let mut new_buckets: Vec<Vec<(K,V)>> = vec![Vec::new(); target_size];
-        // I think this needs a nested for-loop rather than a flat one
-        // we want to drain every element *from every bucket*
-        for (key, value) in self.buckets.drain(..) {
+        let mut new_buckets = Vec::with_capacity(target_size);
+        new_buckets.extend((1..=target_size).map(|_| Vec::new()));
+        // drain gives every bucket in turn
+        // we want to drain from every bucket
+        for (key, value) in self.buckets.drain(..).flat_map(|mut bucket| bucket.drain(..)) {
             let mut hasher = DefaultHasher::new();
             key.hash(&mut hasher);
             let bucket: usize = (hasher.finish() % (new_buckets.len() as u64)) as usize;
@@ -57,7 +58,6 @@ impl<K, V> HashMap<K, V> where K: Hash + Eq {
         let bucket = &mut self.buckets[bucket];
         for (existing_key, existing_value) in bucket.iter_mut() {
             if *existing_key == key {
-                
                 // mem::replace requires a &mut T and a T
                 // if value is of type V, existing_value needs to be of type &mut V
                 return Some(mem::replace(existing_value, value));
