@@ -11,6 +11,8 @@ struct Bucket<K, V> {
 
 // S is a a way to build a hasher
 pub struct HashMap<K, V> {
+    // I guess you can have multiple values in the same bucket
+    // misunderstood the video as saying that wouldn't be the case, but then we'd be using Option rather than Vec
     buckets: Vec<Bucket<K, V>>,
 }
 
@@ -22,8 +24,9 @@ impl<K, V> HashMap<K, V> {
     }
 }
 
-impl<K, V> HashMap<K, V> where K: Hash {
+impl<K, V> HashMap<K, V> where K: Hash + Eq {
     fn resize(&mut self) {
+
         let target_size = match self.buckets.len() {
             0 => INITIAL_NBUCKETS,
             n => 2 * n,
@@ -38,6 +41,27 @@ impl<K, V> HashMap<K, V> where K: Hash {
         // as usize means there is a limit imposed by architecture...
         let bucket: usize = (hasher.finish() % (self.buckets.len() as u64)) as usize;
         let bucket = &mut self.buckets[bucket];
-        bucket.items.push((key, value)); // conceptually, but would mean collisions are possible
+        for (existing_key, existing_value) in bucket.items.iter_mut() {
+            if *existing_key == key {
+                use std::mem;
+                // mem::replace requires a &mut T and a T
+                // if value is of type V, existing_value needs to be of type &mut V
+                return Some(mem::replace(existing_value, value));
+            }
+        }
+        // note earlier return
+        bucket.items.push((key, value));
+        None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn insert() {
+        let map = HashMap::new();
+        map.insert("foo", 42);
     }
 }
