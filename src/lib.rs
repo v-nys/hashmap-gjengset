@@ -23,10 +23,10 @@ impl<K, V> HashMap<K, V> {
     }
 }
 
-pub struct Iter<K,V> {}
+pub struct Iter<'a,K,V> {}
 
-impl<K,V> Iter<K,V> {
-    fn new(&map: HashMap<K,V>) -> Self {
+impl<'a,K,V> Iter<'a,K,V> {
+    fn new(map: &'a HashMap<K,V>) -> Self {
         
     }
 }
