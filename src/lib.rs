@@ -36,7 +36,7 @@ where
         new_buckets.extend((1..=target_size).map(|_| Vec::new()));
         // drain gives every bucket in turn
         // we want to drain from every bucket
-        for (key, value) in self.buckets.drain(..).flat_map(|mut bucket| bucket.drain(..)) {
+        for (key, value) in self.buckets.iter_mut().flat_map(|bucket| bucket.drain(..)) {
             let mut hasher = DefaultHasher::new();
             key.hash(&mut hasher);
             let bucket: usize = (hasher.finish() % (new_buckets.len() as u64)) as usize;
