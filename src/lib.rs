@@ -27,6 +27,12 @@ impl<K, V> HashMap<K, V>
 where
     K: Hash + Eq,
 {
+    fn bucket(&self, key: &K) -> usize {
+        let mut hasher = DefaultHasher::new();
+        key.hash(&mut hasher);
+        (hasher.finish() % (self.buckets.len() as u64)) as usize
+    }
+
     fn resize(&mut self) {
         let target_size = match self.buckets.len() {
             0 => INITIAL_NBUCKETS,
@@ -46,15 +52,21 @@ where
         mem::replace(&mut self.buckets, new_buckets);
     }
 
+    pub fn get(&self, key: &K) -> Option<&V> {
+        let bucket = self.bucket(&key);
+        self.buckets[bucket]
+            .iter()
+            .find(|(k, _)| k == key)
+            .map(|(_, v)| v)
+    }
+
     pub fn insert(&mut self, key: K, value: V) -> Option<V> {
         if self.buckets.is_empty() || self.items > 3 * self.buckets.len() / 4 {
             self.resize();
         }
-        let mut hasher = DefaultHasher::new();
-        key.hash(&mut hasher);
         // expect never to have so many buckets u64 is insufficient
         // as usize means there is a limit imposed by architecture...
-        let bucket: usize = (hasher.finish() % (self.buckets.len() as u64)) as usize;
+        let bucket: usize = self.bucket(&key);
         let bucket = &mut self.buckets[bucket];
         for (existing_key, existing_value) in bucket.iter_mut() {
             if *existing_key == key {
