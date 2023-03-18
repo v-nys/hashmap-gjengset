@@ -31,6 +31,7 @@ impl<K, V> HashMap<K, V> where K: Hash + Eq {
             n => 2 * n,
         };
         // this presents a Clone issue, probably because vec! wants to clone the element (could perhaps use repeat?)
+        // ah, wait: an empty Vec could be cloned, but the type system just designates it as a Vec<(K,V)>, i.e. does not know that it is empty and therefore does not rely on K,V being Clone
         let mut new_buckets: Vec<Vec<(K,V)>> = vec![Vec::new(); target_size];
         // I think this needs a nested for-loop rather than a flat one
         // we want to drain every element *from every bucket*
