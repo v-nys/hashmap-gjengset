@@ -67,6 +67,7 @@ where
         let bucket = self.bucket(&key);
         let bucket = &mut self.buckets[bucket];
         let index_of_removed = bucket.iter().position(|(k,_)| k == key)?;
+        self.items -= 1;
         Some(bucket.swap_remove(index_of_removed).1)
     }
 
@@ -87,6 +88,7 @@ where
         }
         // note earlier return
         bucket.push((key, value));
+        self.items += 1;
         None
     }
 }
