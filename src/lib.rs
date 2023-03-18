@@ -5,15 +5,11 @@ use std::{
 
 const INITIAL_NBUCKETS: usize = 1; // for easier testing
 
-struct Bucket<K, V> {
-    items: Vec<(K, V)>,
-}
-
 // S is a a way to build a hasher
 pub struct HashMap<K, V> {
     // I guess you can have multiple values in the same bucket
     // misunderstood the video as saying that wouldn't be the case, but then we'd be using Option rather than Vec
-    buckets: Vec<Bucket<K, V>>,
+    buckets: Vec<Vec<(K, V)>>,
 }
 
 impl<K, V> HashMap<K, V> {
@@ -41,7 +37,7 @@ impl<K, V> HashMap<K, V> where K: Hash + Eq {
         // as usize means there is a limit imposed by architecture...
         let bucket: usize = (hasher.finish() % (self.buckets.len() as u64)) as usize;
         let bucket = &mut self.buckets[bucket];
-        for (existing_key, existing_value) in bucket.items.iter_mut() {
+        for (existing_key, existing_value) in bucket.iter_mut() {
             if *existing_key == key {
                 use std::mem;
                 // mem::replace requires a &mut T and a T
@@ -50,7 +46,7 @@ impl<K, V> HashMap<K, V> where K: Hash + Eq {
             }
         }
         // note earlier return
-        bucket.items.push((key, value));
+        bucket.push((key, value));
         None
     }
 }
@@ -61,7 +57,7 @@ mod tests {
 
     #[test]
     fn insert() {
-        let map = HashMap::new();
+        let mut map = HashMap::new();
         map.insert("foo", 42);
     }
 }
