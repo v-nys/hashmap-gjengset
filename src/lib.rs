@@ -26,7 +26,7 @@ impl<K, V> HashMap<K, V> {
 pub struct Iter<K,V> {}
 
 impl<K,V> Iter<K,V> {
-    fn new(&HashMap<K,V>) -> Self {
+    fn new(&map: HashMap<K,V>) -> Self {
         
     }
 }
@@ -43,7 +43,7 @@ impl<K,V> IntoIterator for &HashMap<K,V> {
     type IntoIter = Iter<K,V>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Iter::new(self);
+        Iter::new(self)
     }
 }
 
