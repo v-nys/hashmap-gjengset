@@ -30,7 +30,7 @@ impl<K, V> HashMap<K, V> {
 
 // 1:17:40-ish
 pub struct Iter<'a, K, V> {
-    map: &'a HashMap<K,V>,
+    map: &'a HashMap<K, V>,
     bucket: usize,
     at: usize,
 }
@@ -43,10 +43,10 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
             match self.map.buckets.get(self.bucket) {
                 Some(bucket) => {
                     match bucket.get(self.at) {
-                        Some((k,v)) => {
+                        Some((k, v)) => {
                             self.at += 1;
                             // can't use @ because match actually "pushes down" & in &(k,v), which is not (&k,&v)
-                            break Some((k,v));
+                            break Some((k, v));
                         }
                         None => {
                             // using loop rather than recursion
@@ -56,8 +56,8 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
                             continue;
                         }
                     }
-                },
-                None => break None
+                }
+                None => break None,
             }
         }
     }
@@ -172,5 +172,24 @@ mod tests {
         assert_eq!(map.remove(&"foo"), Some(42));
         assert_eq!(map.len(), 0);
         assert_eq!(map.get(&"foo"), None);
+    }
+
+    #[test]
+    fn iter() {
+        let mut map = HashMap::new();
+        map.insert("foo", 42);
+        map.insert("bar", 43);
+        map.insert("baz", 44);
+        map.insert("quux", 45);
+        for (&k, &v) in &map {
+            match k {
+                "foo" => assert_eq!(v, 42),
+                "bar" => assert_eq!(v, 43),
+                "baz" => assert_eq!(v, 44),
+                "quux" => assert_eq!(v, 45),
+                _ => unreachable!()
+            }
+        }
+        assert_eq!((&map).into_iter().count(), 4);
     }
 }
