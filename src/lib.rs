@@ -1,4 +1,5 @@
 use std::{
+    borrow::Borrow,
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
     mem,
@@ -80,7 +81,11 @@ impl<K, V> HashMap<K, V>
 where
     K: Hash + Eq,
 {
-    fn bucket(&self, key: &K) -> usize {
+    fn bucket<Q>(&self, key: &Q) -> usize
+    where
+        K: Borrow<Q>,
+        Q: Hash + Eq + ?Sized,
+    {
         let mut hasher = DefaultHasher::new();
         key.hash(&mut hasher);
         (hasher.finish() % (self.buckets.len() as u64)) as usize
@@ -105,11 +110,17 @@ where
         mem::replace(&mut self.buckets, new_buckets);
     }
 
-    pub fn get(&self, key: &K) -> Option<&V> {
+    pub fn get<Q>(&self, key: &Q) -> Option<&V>
+    where
+        K: Borrow<Q>,
+        Q: Hash + Eq + ?Sized,
+    {
         let bucket = self.bucket(&key);
         self.buckets[bucket]
             .iter()
-            .find(|(k, _)| k == key) // &(...) in param position basically dereferences, because it matches on the structure
+            // k is a &K, key is a &Q
+            // but a K **can be borrowed as a Q**
+            .find(|(k, _)| k.borrow() == key) // &(...) in param position basically dereferences, because it matches on the structure
             .map(|(_, v)| v)
         /* I wonder if Jon's way of writing this is due to muscle memory,
          * because he knows a reference is produced and he matches on it immediately...
@@ -124,14 +135,22 @@ where
         self.items == 0
     }
 
-    pub fn contains_key(&self, key: &K) -> bool {
+    pub fn contains_key<Q>(&self, key: &Q) -> bool
+    where
+        K: Borrow<Q>,
+        Q: Hash + Eq + ?Sized,
+    {
         self.get(key).is_some()
     }
 
-    pub fn remove(&mut self, key: &K) -> Option<V> {
+    pub fn remove<Q>(&mut self, key: &Q) -> Option<V>
+    where
+        K: Borrow<Q>,
+        Q: Hash + Eq + ?Sized,
+    {
         let bucket = self.bucket(&key);
         let bucket = &mut self.buckets[bucket];
-        let index_of_removed = bucket.iter().position(|(k, _)| k == key)?;
+        let index_of_removed = bucket.iter().position(|(k, _)| k.borrow() == key)?;
         self.items -= 1;
         Some(bucket.swap_remove(index_of_removed).1)
     }
@@ -187,7 +206,7 @@ mod tests {
                 "bar" => assert_eq!(v, 43),
                 "baz" => assert_eq!(v, 44),
                 "quux" => assert_eq!(v, 45),
-                _ => unreachable!()
+                _ => unreachable!(),
             }
         }
         assert_eq!((&map).into_iter().count(), 4);

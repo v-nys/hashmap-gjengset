@@ -6,25 +6,13 @@ fn main() {
     // Type inference lets us omit an explicit type signature (which
     // would be `HashMap<String, String>` in this example).
     // Vincent: added Turbofish because example is not the same as when Jon copied it.
-    let mut book_reviews = HashMap::<&str,&str>::new();
+    let mut book_reviews = HashMap::<&str, &str>::new();
 
     // Review some books.
-    book_reviews.insert(
-        "Adventures of Huckleberry Finn",
-        "My favorite book.",
-    );
-    book_reviews.insert(
-        "Grimms' Fairy Tales",
-        "Masterpiece.",
-    );
-    book_reviews.insert(
-        "Pride and Prejudice",
-        "Very enjoyable.",
-    );
-    book_reviews.insert(
-        "The Adventures of Sherlock Holmes",
-        "Eye lyked it alot.",
-    );
+    book_reviews.insert("Adventures of Huckleberry Finn", "My favorite book.");
+    book_reviews.insert("Grimms' Fairy Tales", "Masterpiece.");
+    book_reviews.insert("Pride and Prejudice", "Very enjoyable.");
+    book_reviews.insert("The Adventures of Sherlock Holmes", "Eye lyked it alot.");
 
     // Check for a specific one.
     // When collections store owned values (String), they can still be
