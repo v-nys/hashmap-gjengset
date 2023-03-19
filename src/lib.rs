@@ -27,6 +27,8 @@ impl<K, V> HashMap<K, V> {
  * fact that Hashmap items are references implies that lifetimes are important here.
  *
  */
+
+// 1:17:40-ish
 pub struct Iter<'a, K, V> {
     map: &'a HashMap<K,V>,
     bucket: usize,
@@ -37,13 +39,31 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        None
+        loop {
+            match self.map.buckets.get(self.bucket) {
+                Some(bucket) => {
+                    match bucket.get(self.at) {
+                        Some((k,v)) => {
+                            self.at += 1;
+                            // can't use @ because match actually "pushes down" & in &(k,v), which is not (&k,&v)
+                            break Some((k,v));
+                        }
+                        None => {
+                            // using loop rather than recursion
+                            // reason: missing (guaranteed) tail call optimization
+                            self.bucket += 1;
+                            self.at = 0;
+                            continue;
+                        }
+                    }
+                },
+                None => break None
+            }
+        }
     }
 }
 
 impl<'a, K, V> IntoIterator for &'a HashMap<K, V> {
-    // makes sense that an item cannot outlive the hashmap
-    // TODO: can I also do &'a (K,V) ? not sure...
     type Item = (&'a K, &'a V);
     type IntoIter = Iter<'a, K, V>;
 
